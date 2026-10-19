@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: #0b0f0e;
+  color: #e8edea;
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-ink-700 bg-ink-850;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primario {
+    @apply btn bg-neon text-ink-950 hover:bg-neon-400 active:bg-neon-600;
+  }
+  .btn-secundario {
+    @apply btn border border-ink-600 bg-ink-800 text-ink-100 hover:border-ink-500 hover:bg-ink-700;
+  }
+  .btn-fantasma {
+    @apply btn text-ink-300 hover:bg-ink-800 hover:text-ink-100;
+  }
+  .btn-perigo {
+    @apply btn border border-red-500/30 bg-red-500/10 text-red-300 hover:bg-red-500/20;
+  }
+  .btn-sm {
+    @apply rounded-lg px-3 py-1.5 text-xs;
+  }
+  .input {
+    @apply w-full rounded-xl border border-ink-600 bg-ink-900 px-3.5 py-2.5 text-sm text-ink-100 placeholder:text-ink-400 outline-none transition focus:border-neon/60 focus:ring-2 focus:ring-neon/15;
+  }
+  .label {
+    @apply mb-1.5 block text-xs font-semibold uppercase tracking-wider text-ink-300;
+  }
+  .eyebrow {
+    @apply text-[11px] font-bold uppercase tracking-[0.14em] text-neon;
+  }
+  .tabela {
+    @apply w-full text-left text-sm;
+  }
+  .tabela th {
+    @apply border-b border-ink-700 px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-ink-400;
+  }
+  .tabela td {
+    @apply border-b border-ink-800 px-4 py-3 align-middle;
+  }
+  .tabela tbody tr:last-child td {
+    @apply border-b-0;
+  }
+}
+
+dialog::backdrop {
+  background: rgba(3, 5, 4, 0.72);
+  backdrop-filter: blur(3px);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: #2a3430;
+  border-radius: 999px;
+  border: 2px solid #0b0f0e;
+}

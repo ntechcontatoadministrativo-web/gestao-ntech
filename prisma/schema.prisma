@@ -1,0 +1,615 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Perfil {
+  GESTOR
+  COLABORADOR
+}
+
+enum StatusProjeto {
+  ATIVO
+  PAUSADO
+  CONCLUIDO
+  CANCELADO
+}
+
+enum StatusEtapa {
+  PENDENTE
+  EM_ANDAMENTO
+  AGUARDANDO_APROVACAO
+  CONCLUIDA
+}
+
+// Nível de acesso de uma pessoa a um arquivo. BLOQUEADO sempre vence.
+enum NivelAcesso {
+  VISUALIZAR
+  BAIXAR
+  BLOQUEADO
+}
+
+enum AcaoLog {
+  LOGIN
+  LOGIN_FALHOU
+  VISUALIZOU
+  BAIXOU
+  ENVIOU
+  NOVA_REVISAO
+  ACESSO_NEGADO
+  LIBEROU
+  BLOQUEOU
+  REMOVEU_ACESSO
+  EXCLUIU
+  VIU_CREDENCIAL
+}
+
+model Usuario {
+  id             String    @id @default(cuid())
+  nome           String
+  email          String    @unique
+  senhaHash      String
+  perfil         Perfil    @default(COLABORADOR)
+  cargo          String?
+  telefone       String? // WhatsApp, só dígitos com DDD (ex.: 91988887777)
+  missao         String? // missão/função e responsabilidades, escrita pelo gestor
+  modeloWhatsapp String? // modelo próprio da mensagem de aviso ({primeiro_nome}, {assunto}, {link}...)
+  ativo          Boolean   @default(true)
+  ultimoAcesso   DateTime?
+  // Incrementado ao desativar/trocar senha: invalida sessões abertas na hora.
+  versaoSessao   Int       @default(0)
+  criadoEm       DateTime  @default(now())
+
+  etapas          Etapa[]           @relation("Responsavel")
+  aprovacoes      Etapa[]           @relation("Aprovador")
+  comentarios     Comentario[]
+  versoesEnviadas ArquivoVersao[]
+  acessos         AcessoArquivo[]   @relation("AcessoUsuario")
+  acessosDados    AcessoArquivo[]   @relation("AcessoConcedidoPor")
+  logs            LogAcesso[]       @relation("LogUsuario")
+  projetosCriados Projeto[]
+  tarefas         Tarefa[]          @relation("TarefaResponsavel")
+  tarefasCriadas  Tarefa[]          @relation("TarefaCriador")
+  levantamentos   Levantamento[]
+  apontamentos    Apontamento[]
+  notificacoes    Notificacao[]
+  avisos          Aviso[]
+  chamados        Chamado[]         @relation("ChamadoResponsavel")
+  chamadosAbertos Chamado[]         @relation("ChamadoCriador")
+  respostas       RespostaChamado[]
+  deploys         Deploy[]
+  credenciais     Credencial[]
+}
+
+model Projeto {
+  id           String        @id @default(cuid())
+  codigo       String        @unique
+  nome         String
+  tipo         TipoProjeto   @default(SOFTWARE)
+  cliente      String? // nome do cliente (cópia de clienteRel.nome, para listagens e mensagens)
+  clienteId    String?
+  clienteRel   Cliente?      @relation(fields: [clienteId], references: [id], onDelete: SetNull)
+  descricao    String?
+  repositorio  String? // URL do GitHub/GitLab
+  stack        String? // ex.: "Next.js, Postgres, Render"
+  status       StatusProjeto @default(ATIVO)
+  dataInicio   DateTime      @default(now())
+  prazoFinal   DateTime?
+  pastaDriveId String?
+  criadoPorId  String?
+  criadoPor    Usuario?      @relation(fields: [criadoPorId], references: [id], onDelete: SetNull)
+  criadoEm     DateTime      @default(now())
+  atualizadoEm DateTime      @updatedAt
+
+  etapas       Etapa[]
+  arquivos     Arquivo[]
+  tarefas      Tarefa[]
+  levantamento Levantamento?
+  apontamentos Apontamento[]
+  sprints      Sprint[]
+  ambientes    Ambiente[]
+  deploys      Deploy[]
+  chamados     Chamado[]
+  contratos    Contrato[]
+  credenciais  Credencial[]
+
+  @@index([clienteId])
+}
+
+model Etapa {
+  id            String      @id @default(cuid())
+  projetoId     String
+  projeto       Projeto     @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+  nome          String
+  descricao     String?
+  ordem         Int
+  status        StatusEtapa @default(PENDENTE)
+  responsavelId String?
+  responsavel   Usuario?    @relation("Responsavel", fields: [responsavelId], references: [id], onDelete: SetNull)
+  prazo         DateTime?
+  iniciadaEm    DateTime?
+  enviadaEm     DateTime?
+  concluidaEm   DateTime?
+  aprovadaPorId String?
+  aprovadaPor   Usuario?    @relation("Aprovador", fields: [aprovadaPorId], references: [id], onDelete: SetNull)
+  pastaDriveId  String?
+  criadoEm      DateTime    @default(now())
+
+  comentarios  Comentario[]
+  arquivos     Arquivo[]
+  tarefas      Tarefa[]
+  apontamentos Apontamento[]
+
+  @@index([projetoId, ordem])
+  @@index([responsavelId])
+}
+
+model ModeloEtapa {
+  id         String       @id @default(cuid())
+  nome       String
+  descricao  String?
+  ordem      Int
+  diasPadrao Int          @default(7)
+  ativo      Boolean      @default(true)
+  tipo       TipoProjeto? // vazio = vale para todos os tipos de projeto
+}
+
+model Comentario {
+  id       String   @id @default(cuid())
+  etapaId  String
+  etapa    Etapa    @relation(fields: [etapaId], references: [id], onDelete: Cascade)
+  autorId  String?
+  autor    Usuario? @relation(fields: [autorId], references: [id], onDelete: SetNull)
+  texto    String
+  // Comentários de sistema registram mudanças de status ("Fulano enviou para aprovação").
+  sistema  Boolean  @default(false)
+  criadoEm DateTime @default(now())
+
+  @@index([etapaId, criadoEm])
+}
+
+model Arquivo {
+  id           String       @id @default(cuid())
+  projetoId    String
+  projeto      Projeto      @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+  etapaId      String?
+  etapa        Etapa?       @relation(fields: [etapaId], references: [id], onDelete: SetNull)
+  nome         String
+  extensao     String?
+  revisaoAtual Int          @default(0)
+  // Liberação padrão para quem é responsável por alguma etapa do projeto.
+  acessoEquipe NivelAcesso?
+  criadoEm     DateTime     @default(now())
+  atualizadoEm DateTime     @updatedAt
+
+  versoes ArquivoVersao[]
+  acessos AcessoArquivo[]
+  logs    LogAcesso[]
+
+  @@index([projetoId, etapaId])
+}
+
+model ArquivoVersao {
+  id            String   @id @default(cuid())
+  arquivoId     String
+  arquivo       Arquivo  @relation(fields: [arquivoId], references: [id], onDelete: Cascade)
+  revisao       Int
+  driveFileId   String
+  armazenamento String   @default("drive")
+  nomeOriginal  String
+  mimeType      String
+  tamanho       Int
+  observacao    String?
+  enviadoPorId  String?
+  enviadoPor    Usuario? @relation(fields: [enviadoPorId], references: [id], onDelete: SetNull)
+  criadoEm      DateTime @default(now())
+
+  logs LogAcesso[]
+
+  @@unique([arquivoId, revisao])
+}
+
+model AcessoArquivo {
+  id             String      @id @default(cuid())
+  arquivoId      String
+  arquivo        Arquivo     @relation(fields: [arquivoId], references: [id], onDelete: Cascade)
+  usuarioId      String
+  usuario        Usuario     @relation("AcessoUsuario", fields: [usuarioId], references: [id], onDelete: Cascade)
+  nivel          NivelAcesso
+  concedidoPorId String?
+  concedidoPor   Usuario?    @relation("AcessoConcedidoPor", fields: [concedidoPorId], references: [id], onDelete: SetNull)
+  atualizadoEm   DateTime    @updatedAt
+
+  @@unique([arquivoId, usuarioId])
+}
+
+model LogAcesso {
+  id        String         @id @default(cuid())
+  acao      AcaoLog
+  usuarioId String?
+  usuario   Usuario?       @relation("LogUsuario", fields: [usuarioId], references: [id], onDelete: SetNull)
+  arquivoId String?
+  arquivo   Arquivo?       @relation(fields: [arquivoId], references: [id], onDelete: SetNull)
+  versaoId  String?
+  versao    ArquivoVersao? @relation(fields: [versaoId], references: [id], onDelete: SetNull)
+  detalhe   String?
+  ip        String?
+  userAgent String?
+  criadoEm  DateTime       @default(now())
+
+  @@index([criadoEm])
+  @@index([arquivoId, criadoEm])
+  @@index([usuarioId, criadoEm])
+}
+
+// Chave/valor para configurações do sistema (tokens do Google criptografados etc.).
+model Config {
+  chave        String   @id
+  valor        String
+  atualizadoEm DateTime @updatedAt
+}
+
+// Colunas do quadro: Backlog -> A fazer -> Fazendo -> Em revisão -> Feita
+enum StatusTarefa {
+  BACKLOG
+  A_FAZER
+  FAZENDO
+  REVISAO
+  FEITA
+  CANCELADA
+}
+
+enum TipoTarefa {
+  FEATURE
+  BUG
+  MELHORIA
+  TAREFA
+  PESQUISA
+}
+
+enum Prioridade {
+  BAIXA
+  MEDIA
+  ALTA
+  URGENTE
+}
+
+// Item do quadro (feature, bug, melhoria...). Sem responsável = está no backlog esperando alguém pegar.
+model Tarefa {
+  id            String        @id @default(cuid())
+  numero        Int           @unique @default(autoincrement()) // exibido como #123
+  tipo          TipoTarefa    @default(TAREFA)
+  pontos        Int? // story points (1, 2, 3, 5, 8, 13)
+  sprintId      String?
+  sprint        Sprint?       @relation(fields: [sprintId], references: [id], onDelete: SetNull)
+  linkPr        String? // pull request / branch
+  titulo        String
+  descricao     String?
+  status        StatusTarefa  @default(A_FAZER)
+  prioridade    Prioridade    @default(MEDIA)
+  prazo         DateTime?
+  responsavelId String?
+  responsavel   Usuario?      @relation("TarefaResponsavel", fields: [responsavelId], references: [id], onDelete: SetNull)
+  criadoPorId   String?
+  criadoPor     Usuario?      @relation("TarefaCriador", fields: [criadoPorId], references: [id], onDelete: SetNull)
+  projetoId     String?
+  projeto       Projeto?      @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+  etapaId       String?
+  etapa         Etapa?        @relation(fields: [etapaId], references: [id], onDelete: SetNull)
+  concluidaEm   DateTime?
+  avisadoEm     DateTime? // última vez que o gestor abriu a mensagem de WhatsApp
+  apontamentos  Apontamento[]
+  criadoEm      DateTime      @default(now())
+  atualizadoEm  DateTime      @updatedAt
+
+  chamadoId String?
+  chamado   Chamado? @relation(fields: [chamadoId], references: [id], onDelete: SetNull)
+
+  @@index([responsavelId, status])
+  @@index([projetoId])
+  @@index([sprintId])
+}
+
+enum StatusLevantamento {
+  PROCESSANDO
+  CONCLUIDO
+  ERRO
+}
+
+// Escopo montado pela IA a partir do briefing do cliente (documentos, prints, e-mails).
+model Levantamento {
+  id            String             @id @default(cuid())
+  titulo        String
+  cliente       String?
+  observacoes   String?
+  documentos    Json // [{ nome, tipo, tamanho }]
+  status        StatusLevantamento @default(PROCESSANDO)
+  resultado     Json?
+  erro          String?
+  modelo        String?
+  tokensEntrada Int?
+  tokensSaida   Int?
+  projetoId     String?            @unique
+  projeto       Projeto?           @relation(fields: [projetoId], references: [id], onDelete: SetNull)
+  criadoPorId   String?
+  criadoPor     Usuario?           @relation(fields: [criadoPorId], references: [id], onDelete: SetNull)
+  criadoEm      DateTime           @default(now())
+  concluidoEm   DateTime?
+}
+
+// Apontamento de horas trabalhadas (por etapa e/ou tarefa).
+model Apontamento {
+  id        String   @id @default(cuid())
+  usuarioId String
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  projetoId String
+  projeto   Projeto  @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+  etapaId   String?
+  etapa     Etapa?   @relation(fields: [etapaId], references: [id], onDelete: SetNull)
+  tarefaId  String?
+  tarefa    Tarefa?  @relation(fields: [tarefaId], references: [id], onDelete: SetNull)
+  data      DateTime // dia trabalhado (meio-dia de Belém)
+  minutos   Int
+  descricao String?
+  criadoEm  DateTime @default(now())
+
+  @@index([usuarioId, data])
+  @@index([projetoId, data])
+}
+
+enum StatusNotificacao {
+  ENVIADA
+  ERRO
+}
+
+// Mensagens de WhatsApp enviadas automaticamente pela API.
+model Notificacao {
+  id         String            @id @default(cuid())
+  usuarioId  String
+  usuario    Usuario           @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  canal      String            @default("whatsapp")
+  status     StatusNotificacao
+  mensagem   String
+  erro       String?
+  referencia String? // "tarefa:<id>" ou "etapa:<id>"
+  criadoEm   DateTime          @default(now())
+
+  @@index([usuarioId, criadoEm])
+}
+
+// Avisos dentro do sistema (sininho): tarefa recebida, etapa aprovada, comentário novo etc.
+model Aviso {
+  id        String    @id @default(cuid())
+  usuarioId String
+  usuario   Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  tipo      String // tarefa | etapa | aprovacao | devolucao | comentario | arquivo | projeto
+  titulo    String
+  texto     String?
+  link      String?
+  lidoEm    DateTime?
+  criadoEm  DateTime  @default(now())
+
+  @@index([usuarioId, lidoEm, criadoEm])
+}
+
+enum TipoProjeto {
+  SOFTWARE
+  SITE
+  SUPORTE
+  PRODUTO
+  INTERNO
+}
+
+// ---------------------------------------------------------------------
+// Clientes e contratos
+// ---------------------------------------------------------------------
+
+model Cliente {
+  id           String   @id @default(cuid())
+  nome         String // nome fantasia
+  razaoSocial  String?
+  documento    String? // CNPJ ou CPF
+  contatoNome  String?
+  email        String?
+  telefone     String?
+  site         String?
+  observacoes  String?
+  ativo        Boolean  @default(true)
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  projetos  Projeto[]
+  contratos Contrato[]
+  chamados  Chamado[]
+}
+
+enum TipoContrato {
+  PROJETO // valor fechado
+  MENSALIDADE // recorrente (SaaS, hospedagem, manutenção)
+  SUPORTE // recorrente com SLA
+  HORAS // banco de horas
+}
+
+enum StatusContrato {
+  PROPOSTA
+  ATIVO
+  ENCERRADO
+  CANCELADO
+}
+
+model Contrato {
+  id               String         @id @default(cuid())
+  clienteId        String
+  cliente          Cliente        @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  projetoId        String?
+  projeto          Projeto?       @relation(fields: [projetoId], references: [id], onDelete: SetNull)
+  titulo           String
+  tipo             TipoContrato
+  status           StatusContrato @default(ATIVO)
+  valorCentavos    Int            @default(0) // valor total (PROJETO) ou mensal (recorrentes)
+  diaVencimento    Int?
+  horasMes         Int? // horas incluídas por mês (SUPORTE / HORAS)
+  slaRespostaHoras Int? // sobrescreve o SLA padrão nos chamados deste contrato
+  slaSolucaoHoras  Int?
+  inicio           DateTime       @default(now())
+  fim              DateTime?
+  observacoes      String?
+  criadoEm         DateTime       @default(now())
+  atualizadoEm     DateTime       @updatedAt
+
+  chamados Chamado[]
+
+  @@index([clienteId, status])
+}
+
+// ---------------------------------------------------------------------
+// Sprints
+// ---------------------------------------------------------------------
+
+enum StatusSprint {
+  PLANEJADA
+  ATIVA
+  CONCLUIDA
+}
+
+model Sprint {
+  id          String       @id @default(cuid())
+  projetoId   String
+  projeto     Projeto      @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+  nome        String
+  objetivo    String?
+  inicio      DateTime
+  fim         DateTime
+  status      StatusSprint @default(PLANEJADA)
+  concluidaEm DateTime?
+  criadoEm    DateTime     @default(now())
+
+  tarefas Tarefa[]
+
+  @@index([projetoId, status])
+}
+
+// ---------------------------------------------------------------------
+// Chamados de suporte
+// ---------------------------------------------------------------------
+
+enum StatusChamado {
+  ABERTO
+  EM_ATENDIMENTO
+  AGUARDANDO_CLIENTE
+  RESOLVIDO
+  FECHADO
+}
+
+model Chamado {
+  id                 String        @id @default(cuid())
+  numero             Int           @unique @default(autoincrement())
+  titulo             String
+  descricao          String?
+  status             StatusChamado @default(ABERTO)
+  prioridade         Prioridade    @default(MEDIA)
+  canal              String        @default("whatsapp") // whatsapp | email | telefone | interno
+  solicitante        String? // quem pediu, do lado do cliente
+  clienteId          String?
+  cliente            Cliente?      @relation(fields: [clienteId], references: [id], onDelete: SetNull)
+  projetoId          String?
+  projeto            Projeto?      @relation(fields: [projetoId], references: [id], onDelete: SetNull)
+  contratoId         String?
+  contrato           Contrato?     @relation(fields: [contratoId], references: [id], onDelete: SetNull)
+  responsavelId      String?
+  responsavel        Usuario?      @relation("ChamadoResponsavel", fields: [responsavelId], references: [id], onDelete: SetNull)
+  criadoPorId        String?
+  criadoPor          Usuario?      @relation("ChamadoCriador", fields: [criadoPorId], references: [id], onDelete: SetNull)
+  prazoResposta      DateTime?
+  prazoSolucao       DateTime?
+  primeiraRespostaEm DateTime?
+  resolvidoEm        DateTime?
+  criadoEm           DateTime      @default(now())
+  atualizadoEm       DateTime      @updatedAt
+
+  respostas RespostaChamado[]
+  tarefas   Tarefa[]
+
+  @@index([status, prioridade])
+  @@index([clienteId])
+  @@index([responsavelId, status])
+}
+
+model RespostaChamado {
+  id        String   @id @default(cuid())
+  chamadoId String
+  chamado   Chamado  @relation(fields: [chamadoId], references: [id], onDelete: Cascade)
+  autorId   String?
+  autor     Usuario? @relation(fields: [autorId], references: [id], onDelete: SetNull)
+  texto     String
+  interna   Boolean  @default(false) // nota interna (não foi passada ao cliente)
+  sistema   Boolean  @default(false)
+  criadoEm  DateTime @default(now())
+
+  @@index([chamadoId, criadoEm])
+}
+
+// ---------------------------------------------------------------------
+// Ambientes, deploys e cofre
+// ---------------------------------------------------------------------
+
+model Ambiente {
+  id          String   @id @default(cuid())
+  projetoId   String
+  projeto     Projeto  @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+  nome        String // Produção, Homologação, Dev
+  url         String?
+  branch      String?
+  hospedagem  String? // Render, Vercel, AWS, VPS...
+  observacoes String?
+  criadoEm    DateTime @default(now())
+
+  deploys Deploy[]
+
+  @@index([projetoId])
+}
+
+enum StatusDeploy {
+  SUCESSO
+  FALHOU
+  REVERTIDO
+}
+
+model Deploy {
+  id         String       @id @default(cuid())
+  projetoId  String
+  projeto    Projeto      @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+  ambienteId String?
+  ambiente   Ambiente?    @relation(fields: [ambienteId], references: [id], onDelete: SetNull)
+  versao     String // v1.4.0, commit, tag
+  notas      String? // changelog
+  status     StatusDeploy @default(SUCESSO)
+  autorId    String?
+  autor      Usuario?     @relation(fields: [autorId], references: [id], onDelete: SetNull)
+  criadoEm   DateTime     @default(now())
+
+  @@index([projetoId, criadoEm])
+  @@index([criadoEm])
+}
+
+// Senhas e chaves de clientes/serviços. O segredo fica criptografado (AES-256-GCM),
+// só o gestor revela, e cada revelação vai para a auditoria.
+model Credencial {
+  id             String   @id @default(cuid())
+  nome           String // "Painel Hostinger", "AWS root", "Admin WordPress"
+  projetoId      String?
+  projeto        Projeto? @relation(fields: [projetoId], references: [id], onDelete: SetNull)
+  url            String?
+  usuario        String?
+  segredoCifrado String
+  observacoes    String?
+  criadoPorId    String?
+  criadoPor      Usuario? @relation(fields: [criadoPorId], references: [id], onDelete: SetNull)
+  criadoEm       DateTime @default(now())
+  atualizadoEm   DateTime @updatedAt
+}
