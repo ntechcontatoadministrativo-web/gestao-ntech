@@ -1,5 +1,5 @@
 # Blueprint do Render: New + > Blueprint > selecione este repositório.
-# O banco é o Neon (DATABASE_URL / DIRECT_URL são pedidas na criação).
+# O banco é o Neon (DATABASE_URL / DATABASE_URL_UNPOOLED são pedidas na criação).
 services:
   - type: web
     name: ntech-hub
@@ -14,7 +14,7 @@ services:
         value: "20.18.0"
       - key: DATABASE_URL
         sync: false
-      - key: DIRECT_URL
+      - key: DATABASE_URL_UNPOOLED
         sync: false
       - key: SESSION_SECRET
         generateValue: true

@@ -26,7 +26,7 @@ Requisitos: Node 20+ e um Postgres **novo, só deste sistema** (ex.: um banco gr
 Não reaproveite o banco do sistema de projetos elétricos: o `db push` reescreve as tabelas.
 
 ```bash
-cp .env.example .env      # preencha DATABASE_URL, DIRECT_URL, SESSION_SECRET, ENCRYPTION_KEY e o ADMIN_*
+cp .env.example .env      # preencha DATABASE_URL, DATABASE_URL_UNPOOLED, SESSION_SECRET, ENCRYPTION_KEY e o ADMIN_*
 npm install
 npm run db:push           # cria as tabelas
 npm run db:seed           # cria as etapas padrão por tipo de projeto e o primeiro gestor

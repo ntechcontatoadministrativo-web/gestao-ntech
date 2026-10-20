@@ -6,3 +6,4 @@ node_modules
 *.tsbuildinfo
 .pgdata/
 ACESSO-TESTE.txt
+.neon

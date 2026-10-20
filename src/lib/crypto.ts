@@ -1,9 +1,9 @@
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "crypto";
 
 // Aceita 64 caracteres hex ou qualquer segredo longo (ex.: gerado pelo Render), derivado via SHA-256.
-// Sem ENCRYPTION_KEY, deriva da DIRECT_URL/DATABASE_URL (trocar a senha do banco exige reconectar o Drive).
+// Sem ENCRYPTION_KEY, deriva da DATABASE_URL_UNPOOLED/DATABASE_URL (trocar a senha do banco exige reconectar o Drive).
 function chave(): Buffer {
-  const url = process.env.DIRECT_URL || process.env.DATABASE_URL;
+  const url = process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL;
   const v = process.env.ENCRYPTION_KEY || (url ? `ntech-cripto|${url}` : "");
   if (!v || v.length < 32) throw new Error("ENCRYPTION_KEY ausente ou curta (mínimo 32 caracteres).");
   return /^[0-9a-f]{64}$/i.test(v) ? Buffer.from(v, "hex") : createHash("sha256").update(v).digest();
