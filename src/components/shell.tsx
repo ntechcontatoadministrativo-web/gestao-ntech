@@ -105,6 +105,8 @@ const MENU_COLAB: Grupo[] = [
   },
 ];
 
+const ATALHO_PROJETOS: Item = { href: "/projetos", rotulo: "Projetos", icone: FolderKanban };
+
 const COR_CONTADOR = {
   pendencias: "bg-amber-400/20 text-amber-300",
   tarefas: "bg-sky-400/20 text-sky-300",
@@ -194,7 +196,7 @@ export function Shell({
     <div className="min-h-screen lg:pl-64">
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r border-ink-700 bg-ink-900 lg:block">{nav}</aside>
 
-      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-ink-700 bg-ink-900/90 px-4 py-3 backdrop-blur lg:hidden">
+      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-ink-700 bg-ink-900/90 px-4 pb-2.5 pt-[max(0.625rem,env(safe-area-inset-top))] backdrop-blur lg:hidden">
         <Logo subtitulo={false} />
         <span className="ml-auto mr-1">
           <Sininho inicial={avisos} alinhar="direita" />
@@ -205,10 +207,10 @@ export function Shell({
       </header>
 
       {aberto && (
-        <div className="fixed inset-0 z-40 lg:hidden">
+        <div className="fixed inset-0 z-50 lg:hidden">
           <div className="absolute inset-0 bg-black/60" onClick={() => setAberto(false)} />
-          <aside className="absolute inset-y-0 left-0 w-72 border-r border-ink-700 bg-ink-900">
-            <button onClick={() => setAberto(false)} className="absolute right-3 top-5 rounded-lg p-2 text-ink-300 hover:bg-ink-800" aria-label="Fechar menu">
+          <aside className="absolute inset-y-0 left-0 w-[min(18rem,85vw)] border-r border-ink-700 bg-ink-900 pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)]">
+            <button onClick={() => setAberto(false)} className="absolute right-3 top-[calc(1.25rem+env(safe-area-inset-top))] rounded-lg p-2 text-ink-300 hover:bg-ink-800" aria-label="Fechar menu">
               <X className="h-5 w-5" />
             </button>
             {nav}
@@ -216,7 +218,29 @@ export function Shell({
         </div>
       )}
 
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">{children}</main>
+      <main className="mx-auto max-w-7xl px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:py-8">{children}</main>
+
+      {/* Celular: atalhos para as telas mais usadas; o resto fica no menu. */}
+      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-ink-700 bg-ink-900/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
+        <div className="grid grid-cols-5">
+          {menu[0].itens.slice(0, 3).concat(ATALHO_PROJETOS).map((i) => {
+            const ativo = pathname === i.href || pathname.startsWith(i.href + "/");
+            const Icone = i.icone;
+            const n = i.contador ? contadores[i.contador] : 0;
+            return (
+              <Link key={i.href} href={i.href} className={cn("relative flex flex-col items-center gap-1 py-2.5 text-[10px] font-semibold", ativo ? "text-neon" : "text-ink-400")}>
+                <Icone className="h-5 w-5" />
+                <span className="max-w-full truncate px-1">{i.rotulo.replace(/^Minhas? /, "")}</span>
+                {n > 0 && <span className="absolute left-1/2 top-1.5 ml-2 min-w-[16px] rounded-full bg-neon px-1 text-center text-[9px] font-bold leading-4 text-ink-950">{n}</span>}
+              </Link>
+            );
+          })}
+          <button onClick={() => setAberto(true)} className="flex flex-col items-center gap-1 py-2.5 text-[10px] font-semibold text-ink-400">
+            <Menu className="h-5 w-5" />
+            Menu
+          </button>
+        </div>
+      </nav>
     </div>
   );
 }

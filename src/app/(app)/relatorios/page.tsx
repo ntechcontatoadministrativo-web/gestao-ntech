@@ -55,11 +55,11 @@ export default async function Relatorios({ searchParams }: { searchParams: { per
             </Link>
           ))}
         </div>
-        <form className="flex items-center gap-2">
-          <input type="date" name="de" defaultValue={de} className="input py-2" aria-label="De" />
+        <form className="flex flex-wrap items-center gap-2">
+          <input type="date" name="de" defaultValue={de} className="input min-w-0 flex-1 py-2 sm:flex-none" aria-label="De" />
           <span className="text-ink-500">→</span>
-          <input type="date" name="ate" defaultValue={ate} className="input py-2" aria-label="Até" />
-          <button className="btn-secundario">Aplicar</button>
+          <input type="date" name="ate" defaultValue={ate} className="input min-w-0 flex-1 py-2 sm:flex-none" aria-label="Até" />
+          <button className="btn-secundario w-full sm:w-auto">Aplicar</button>
         </form>
       </div>
 

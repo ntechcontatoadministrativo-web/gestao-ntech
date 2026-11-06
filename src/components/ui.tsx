@@ -144,9 +144,9 @@ export function Vazio({ icone, titulo, texto, acao }: { icone?: React.ReactNode;
 
 export function Kpi({ rotulo, valor, detalhe, destaque }: { rotulo: string; valor: React.ReactNode; detalhe?: React.ReactNode; destaque?: boolean }) {
   return (
-    <div className={cn("card p-5", destaque && "border-neon/30 bg-neon/[0.04]")}>
-      <div className="text-[11px] font-bold uppercase tracking-wider text-ink-400">{rotulo}</div>
-      <div className={cn("mt-2 text-3xl font-bold tabular-nums", destaque ? "text-neon" : "text-white")}>{valor}</div>
+    <div className={cn("card p-4 sm:p-5", destaque && "border-neon/30 bg-neon/[0.04]")}>
+      <div className="text-[10px] font-bold uppercase tracking-wider text-ink-400 sm:text-[11px]">{rotulo}</div>
+      <div className={cn("mt-2 break-words text-xl font-bold tabular-nums sm:text-3xl", destaque ? "text-neon" : "text-white")}>{valor}</div>
       {detalhe && <div className="mt-1 text-xs text-ink-400">{detalhe}</div>}
     </div>
   );

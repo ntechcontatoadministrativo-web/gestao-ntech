@@ -190,7 +190,7 @@ export function FormResposta({ id, status }: { id: string; status: StatusChamado
           <label className="flex cursor-pointer items-center gap-2 text-sm text-ink-300">
             <input type="checkbox" name="interna" className="h-4 w-4 accent-[#5CFF4F]" /> Nota interna
           </label>
-          <select name="status" defaultValue="" className="input w-auto py-1.5 text-xs">
+          <select name="status" defaultValue="" className="input max-w-full py-1.5 text-xs sm:w-auto">
             <option value="">Manter status</option>
             {status !== "AGUARDANDO_CLIENTE" && <option value="AGUARDANDO_CLIENTE">→ Aguardando cliente</option>}
             {status !== "RESOLVIDO" && <option value="RESOLVIDO">→ Resolvido</option>}

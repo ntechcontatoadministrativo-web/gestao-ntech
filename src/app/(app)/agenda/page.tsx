@@ -117,11 +117,11 @@ export default async function Agenda({ searchParams }: { searchParams: { mes?: s
         titulo={`${MESES[mes - 1][0].toUpperCase()}${MESES[mes - 1].slice(1)} de ${ano}`}
         descricao={gestor ? "Prazos de etapas, tarefas e entregas de projetos." : "Os prazos das suas etapas e tarefas."}
         acoes={
-          <div className="flex items-center gap-2">
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
             {gestor && (
-              <form className="flex gap-2">
+              <form className="flex w-full gap-2 sm:w-auto">
                 <input type="hidden" name="mes" value={mesAtual} />
-                <select name="pessoa" defaultValue={searchParams.pessoa ?? ""} className="input py-2">
+                <select name="pessoa" defaultValue={searchParams.pessoa ?? ""} className="input min-w-0 flex-1 py-2 sm:flex-none">
                   <option value="">Toda a equipe</option>
                   {pessoas.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -196,9 +196,9 @@ export default async function Agenda({ searchParams }: { searchParams: { mes?: s
         ) : (
           <ul className="divide-y divide-ink-800">
             {doMes.map((it) => (
-              <li key={it.tipo + it.id} className="flex items-center gap-3 px-5 py-2.5">
+              <li key={it.tipo + it.id} className="flex items-center gap-3 px-4 py-2.5 sm:px-5">
                 <span className={cn("w-12 shrink-0 text-xs tabular-nums", it.dia === hoje ? "font-bold text-neon" : "text-ink-400")}>{it.dia.slice(8)}/{it.dia.slice(5, 7)}</span>
-                <span className="w-16 shrink-0 text-[11px] uppercase tracking-wider text-ink-500">{ROTULO[it.tipo]}</span>
+                <span className="hidden w-16 shrink-0 text-[11px] uppercase tracking-wider text-ink-500 sm:inline">{ROTULO[it.tipo]}</span>
                 <Link href={it.link} className={cn("min-w-0 flex-1 truncate text-sm hover:text-neon", it.feito ? "text-ink-500 line-through" : "text-ink-100")}>
                   {it.titulo} <span className="text-ink-500">· {it.detalhe}</span>
                 </Link>

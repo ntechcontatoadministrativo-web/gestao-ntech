@@ -20,7 +20,7 @@ export function FormComentario({ etapaId }: { etapaId: string }) {
 export function StatusManual({ etapaId, status }: { etapaId: string; status: StatusEtapa }) {
   return (
     <form action={definirStatusEtapa.bind(null, etapaId)}>
-      <SelectAuto key={status} name="status" defaultValue={status} className="input w-auto py-2 text-xs" aria-label="Alterar status">
+      <SelectAuto key={status} name="status" defaultValue={status} className="input max-w-full py-2 text-xs sm:w-auto" aria-label="Alterar status">
         <option value="PENDENTE">Pendente</option>
         <option value="EM_ANDAMENTO">Em andamento</option>
         <option value="AGUARDANDO_APROVACAO">Aguardando aprovação</option>

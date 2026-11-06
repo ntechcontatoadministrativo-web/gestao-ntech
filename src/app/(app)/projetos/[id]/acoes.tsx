@@ -31,7 +31,7 @@ export function AcoesProjeto({
   return (
     <>
       <form action={alterarStatusProjeto.bind(null, projeto.id)}>
-        <SelectAuto name="status" defaultValue={projeto.status} className="input w-auto py-2" aria-label="Status do projeto">
+        <SelectAuto name="status" defaultValue={projeto.status} className="input max-w-full py-2 sm:w-auto" aria-label="Status do projeto">
           <option value="ATIVO">Ativo</option>
           <option value="PAUSADO">Pausado</option>
           <option value="CONCLUIDO">Concluído</option>

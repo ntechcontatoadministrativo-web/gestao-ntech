@@ -87,7 +87,12 @@ export function Modal({
         ref={ref}
         onClose={() => setAberto(false)}
         onClick={(e) => e.target === ref.current && fechar()}
-        className={cn("w-[calc(100%-2rem)] rounded-2xl border border-ink-600 bg-ink-850 p-0 text-ink-100 shadow-2xl", largura)}
+        className={cn(
+          "w-[calc(100%-2rem)] rounded-2xl border border-ink-600 bg-ink-850 p-0 text-ink-100 shadow-2xl",
+          // Celular: abre como folha presa embaixo da tela, na largura toda.
+          "max-sm:mb-0 max-sm:mt-auto max-sm:w-full max-sm:max-w-none max-sm:rounded-b-none max-sm:border-x-0 max-sm:border-b-0",
+          largura,
+        )}
       >
         <div className="flex items-center justify-between border-b border-ink-700 px-5 py-4">
           <h2 className="font-semibold text-white">{titulo}</h2>
@@ -95,7 +100,7 @@ export function Modal({
             <X className="h-4 w-4" />
           </button>
         </div>
-        <div className="max-h-[75vh] overflow-y-auto p-5">{aberto && children(fechar)}</div>
+        <div className="max-h-[75vh] overflow-y-auto p-5 max-sm:max-h-[80dvh] max-sm:pb-[calc(1.25rem+env(safe-area-inset-bottom))]">{aberto && children(fechar)}</div>
       </dialog>
     </>
   );

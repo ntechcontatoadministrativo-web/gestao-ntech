@@ -185,7 +185,7 @@ export function AssistenteFlutuante({ sugestoes }: { sugestoes: string[] }) {
   return (
     <>
       {aberto && (
-        <div className="fixed inset-x-3 bottom-20 top-20 z-40 flex flex-col overflow-hidden rounded-2xl border border-ink-600 bg-ink-850 shadow-2xl sm:inset-x-auto sm:right-5 sm:top-auto sm:h-[600px] sm:w-[420px]">
+        <div className="fixed inset-x-3 bottom-[calc(8.5rem+env(safe-area-inset-bottom))] top-[calc(4.5rem+env(safe-area-inset-top))] z-40 flex flex-col overflow-hidden rounded-2xl border border-ink-600 bg-ink-850 shadow-2xl sm:inset-x-auto sm:right-5 sm:top-auto sm:h-[600px] sm:w-[420px] lg:bottom-20">
           <div className="flex items-center justify-between border-b border-ink-700 px-4 py-3">
             <div className="flex items-center gap-2 text-sm font-semibold text-white">
               <Sparkles className="h-4 w-4 text-neon" /> Assistente NTECH
@@ -204,7 +204,7 @@ export function AssistenteFlutuante({ sugestoes }: { sugestoes: string[] }) {
       )}
       <button
         onClick={() => setAberto((v) => !v)}
-        className="fixed bottom-5 right-5 z-40 flex h-12 items-center gap-2 rounded-full bg-neon px-4 font-semibold text-ink-950 shadow-lg shadow-neon/20 hover:bg-neon-400"
+        className="fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom))] right-4 z-40 flex h-12 lg:bottom-5 lg:right-5 items-center gap-2 rounded-full bg-neon px-4 font-semibold text-ink-950 shadow-lg shadow-neon/20 hover:bg-neon-400"
         aria-label="Abrir assistente de IA"
       >
         {aberto ? <X className="h-5 w-5" /> : <MessageSquareText className="h-5 w-5" />}

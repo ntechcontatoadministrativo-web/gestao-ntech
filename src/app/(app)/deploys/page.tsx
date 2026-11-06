@@ -44,7 +44,7 @@ export default async function Deploys({ searchParams }: { searchParams: { projet
       </div>
 
       <form className="mb-4">
-        <SelectAuto name="projeto" defaultValue={searchParams.projeto ?? ""} className="input w-auto py-2">
+        <SelectAuto name="projeto" defaultValue={searchParams.projeto ?? ""} className="input max-w-full py-2 sm:w-auto">
           <option value="">Todos os projetos</option>
           {projetos.map((p) => (
             <option key={p.id} value={p.id}>

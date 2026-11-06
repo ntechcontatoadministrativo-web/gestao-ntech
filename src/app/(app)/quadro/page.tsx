@@ -92,7 +92,7 @@ export default async function QuadroPage({ searchParams }: { searchParams: { pro
       />
 
       <form className="mb-4 flex flex-wrap gap-2">
-        <SelectAuto name="projeto" defaultValue={projeto?.id ?? ""} className="input w-auto py-2">
+        <SelectAuto name="projeto" defaultValue={projeto?.id ?? ""} className="input max-w-full py-2 sm:w-auto">
           <option value="">Todos os projetos</option>
           {opcoes.projetos.map((p) => (
             <option key={p.id} value={p.id}>
@@ -101,7 +101,7 @@ export default async function QuadroPage({ searchParams }: { searchParams: { pro
           ))}
         </SelectAuto>
         {projeto && (
-          <SelectAuto name="sprint" defaultValue={sprintId ?? "todas"} className="input w-auto py-2">
+          <SelectAuto name="sprint" defaultValue={sprintId ?? "todas"} className="input max-w-full py-2 sm:w-auto">
             <option value="todas">Sem filtro de sprint</option>
             {projeto.sprints.map((s) => (
               <option key={s.id} value={s.id}>
@@ -111,7 +111,7 @@ export default async function QuadroPage({ searchParams }: { searchParams: { pro
             ))}
           </SelectAuto>
         )}
-        <SelectAuto name="pessoa" defaultValue={searchParams.pessoa ?? ""} className="input w-auto py-2">
+        <SelectAuto name="pessoa" defaultValue={searchParams.pessoa ?? ""} className="input max-w-full py-2 sm:w-auto">
           <option value="">Todas as pessoas</option>
           <option value="eu">Só os meus</option>
           {gestor &&

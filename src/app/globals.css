@@ -12,6 +12,26 @@ body {
   color: #e8edea;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Itens de grid encolhem até a largura da coluna em vez de crescer com o
+   conteúdo (nomes longos, tabelas): era o que estourava a página no celular. */
+.grid > * {
+  min-width: 0;
+}
+
+/* No celular, campos com fonte menor que 16px fazem o iPhone dar zoom ao tocar. */
+@media (max-width: 639px) {
+  .input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
 @layer components {
   .card {
     @apply rounded-2xl border border-ink-700 bg-ink-850;
@@ -47,10 +67,10 @@ body {
     @apply w-full text-left text-sm;
   }
   .tabela th {
-    @apply border-b border-ink-700 px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-ink-400;
+    @apply border-b border-ink-700 px-3 py-3 text-[11px] sm:px-4 font-bold uppercase tracking-wider text-ink-400;
   }
   .tabela td {
-    @apply border-b border-ink-800 px-4 py-3 align-middle;
+    @apply border-b border-ink-800 px-3 py-3 align-middle sm:px-4;
   }
   .tabela tbody tr:last-child td {
     @apply border-b-0;

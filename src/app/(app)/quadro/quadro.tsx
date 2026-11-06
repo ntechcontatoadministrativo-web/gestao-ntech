@@ -84,8 +84,8 @@ export function Quadro({ cartoes, mostrarBacklog }: { cartoes: CartaoQuadro[]; m
           {mostrarBacklog ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />} {mostrarBacklog ? "Esconder backlog" : "Mostrar backlog"}
         </button>
       </div>
-      <div className="-mx-4 overflow-x-auto px-4 pb-4 sm:mx-0 sm:px-0">
-        <div className="grid min-w-[900px] gap-3" style={{ gridTemplateColumns: `repeat(${colunas.length}, minmax(0, 1fr))` }}>
+      <div className="-mx-4 snap-x snap-mandatory scroll-px-4 overflow-x-auto px-4 pb-4 sm:mx-0 sm:snap-none sm:px-0">
+        <div className="grid gap-3 [--coluna:82vw] sm:[--coluna:170px]" style={{ gridTemplateColumns: `repeat(${colunas.length}, minmax(var(--coluna), 1fr))` }}>
           {colunas.map((col) => {
             const lista = itens.filter((i) => i.status === col.status);
             const pontos = lista.reduce((s, i) => s + (i.pontos ?? 0), 0);
@@ -99,7 +99,7 @@ export function Quadro({ cartoes, mostrarBacklog }: { cartoes: CartaoQuadro[]; m
                 onDragLeave={() => setAlvo((a) => (a === col.status ? null : a))}
                 onDrop={() => soltar(col.status)}
                 className={cn(
-                  "flex min-h-[60vh] flex-col rounded-2xl border bg-ink-900/60 transition",
+                  "flex min-h-[60vh] snap-start flex-col rounded-2xl border bg-ink-900/60 transition",
                   alvo === col.status && arrastando ? "border-neon/50 bg-neon/[0.03]" : "border-ink-700",
                 )}
               >
