@@ -74,7 +74,7 @@ export default async function QuadroPage({ searchParams }: { searchParams: { pro
       <Cabecalho
         eyebrow="Quadro"
         titulo={projeto ? `${projeto.codigo} · ${projeto.nome}` : "Quadro da equipe"}
-        descricao="Arraste os cartões entre as colunas. Quem puxa um item sem dono vira o responsável."
+        descricao="Arraste os cartões entre as colunas ou use “Mover para…” no cartão. Quem puxa um item sem dono vira o responsável."
         acoes={
           <>
             <Link href="/tarefas" className="btn-secundario">

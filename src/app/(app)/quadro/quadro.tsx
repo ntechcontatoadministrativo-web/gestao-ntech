@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Eye, EyeOff, Lock } from "lucide-react";
+import { ArrowRightLeft, Eye, EyeOff, Lock } from "lucide-react";
 import type { Prioridade, StatusTarefa, TipoTarefa } from "@prisma/client";
 import { alterarStatusTarefa } from "@/actions/tarefas";
 import { Avatar, Badge, Pontos, TipoTarefaIcone } from "@/components/ui";
@@ -49,6 +49,11 @@ export function Quadro({ cartoes, mostrarBacklog }: { cartoes: CartaoQuadro[]; m
     const id = arrastando;
     setArrastando(null);
     setAlvo(null);
+    if (id) mover(id, status);
+  }
+
+  // Usado pelo arrastar e soltar e pelo "Mover para…" do cartão (no celular não dá para arrastar).
+  function mover(id: string, status: StatusTarefa) {
     const c = itens.find((i) => i.id === id);
     if (!c || c.status === status) return;
     if (!c.podeMover) {
@@ -151,6 +156,26 @@ export function Quadro({ cartoes, mostrarBacklog }: { cartoes: CartaoQuadro[]; m
                           <Pontos valor={c.pontos} />
                         </span>
                       </div>
+                      {c.podeMover && (
+                        <label className="relative mt-2.5 flex items-center justify-center gap-1.5 rounded-lg border border-ink-700 py-2 text-xs font-semibold text-ink-300 transition focus-within:border-neon/60 hover:border-ink-500 hover:text-ink-100">
+                          <ArrowRightLeft className="h-3.5 w-3.5" /> Mover para…
+                          <select
+                            value=""
+                            onChange={(e) => e.target.value && mover(c.id, e.target.value as StatusTarefa)}
+                            className="absolute inset-0 cursor-pointer opacity-0"
+                            aria-label={`Mover #${c.numero} para outra coluna`}
+                          >
+                            <option value="" disabled>
+                              Mover para…
+                            </option>
+                            {COLUNAS.filter((o) => o.status !== c.status).map((o) => (
+                              <option key={o.status} value={o.status}>
+                                {o.rotulo}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      )}
                     </article>
                   ))}
                   {lista.length === 0 && <div className="rounded-xl border border-dashed border-ink-700 px-3 py-6 text-center text-[11px] text-ink-500">Solte aqui</div>}
